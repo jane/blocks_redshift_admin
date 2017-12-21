@@ -4,7 +4,7 @@ view: redshift_wlm_queries {
           , w.query, "substring"(q.querytxt, 1, 4000) AS querytxt
           , w.queue_start_time
           , w.service_class
-          , case when w.service_class = 14 then 'short_query_queue' else b.condition end as service_class_condition
+          , case when w.service_class = 14 then 'short_query_queue' else trim(b.condition) end as service_class_condition
           , w.slot_count AS slots, w.total_queue_time / 1000000 AS queue_seconds
           , w.total_exec_time / 1000000 AS exec_seconds
           , (w.total_queue_time + w.total_exec_time) / 1000000 AS total_seconds
