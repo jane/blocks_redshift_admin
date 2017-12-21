@@ -117,3 +117,8 @@ explore: redshift_query_execution {
   persist_for: "0 seconds"
   fields: [ALL_FIELDS*, -redshift_query_execution.emitted_rows_to_table_rows_ratio]
 }
+
+explore: redshift_wlm_queries {
+  group_label: "Redshift Monitoring"
+  label: "Queries by WLM Queue"
+}
