@@ -50,49 +50,71 @@ view: redshift_wlm_queries {
     sql: ${TABLE}.total_seconds ;;
   }
 
+  # ----- Sets of fields for drilling ------
+  set: query_detail {
+    fields: [
+      query_txt,
+      queue_start_time_time,
+      service_class_desc,
+      queue_seconds,
+      exec_seconds,
+      total_seconds
+    ]
+  }
+
+
   measure: sum_queue_seconds {
     type: sum
     sql: ${queue_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: sum_exec_seconds {
     type: sum
     sql: ${exec_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: sum_total_seconds {
     type: sum
     sql: ${total_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: mean_queue_seconds {
     type: average
     sql: ${queue_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: mean_exec_seconds {
     type: average
     sql: ${exec_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: mean_total_seconds {
     type: sum
     sql: ${total_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: median_queue_seconds {
     type: median
     sql: ${queue_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: median_exec_seconds {
     type: median
     sql: ${exec_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
   measure: median_total_seconds {
     type: median
     sql: ${total_seconds} ;;
+    drill_fields: [query_detail*]
   }
 
 }
