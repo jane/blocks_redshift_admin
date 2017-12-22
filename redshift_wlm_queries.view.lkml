@@ -1,7 +1,7 @@
 view: redshift_wlm_queries {
     derived_table: {
-      sql: SELECT btrim(q."database") AS db
-          , w.query, "substring"(q.querytxt, 1, 4000) AS querytxt
+      sql: SELECT
+            w.query, "substring"(q.querytxt, 1, 4000) AS querytxt
           , w.queue_start_time
           , w.service_class
           , case when w.service_class = 14 then 'short_query_queue' else trim(b.condition) end as service_class_condition
@@ -24,8 +24,14 @@ view: redshift_wlm_queries {
     type: time
     timeframes: [
       raw,
+      date,
       time,
-      date
+      hour12,
+      hour,
+      minute30,
+      minute15,
+      minute5,
+      minute
     ]
     sql: ${TABLE}.queue_start_time ;;
   }
@@ -49,6 +55,7 @@ view: redshift_wlm_queries {
     type:  number
     sql: ${TABLE}.total_seconds ;;
   }
+
 
   # ----- Sets of fields for drilling ------
   set: query_detail {
@@ -115,6 +122,11 @@ view: redshift_wlm_queries {
     type: median
     sql: ${total_seconds} ;;
     drill_fields: [query_detail*]
+  }
+
+  measure: top_n_execution {
+    type: number
+    sql:  row_number() over (order by exec_seconds desc) ;;
   }
 
 }
