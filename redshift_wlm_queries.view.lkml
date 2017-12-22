@@ -4,7 +4,15 @@ view: redshift_wlm_queries {
             w.query, "substring"(q.querytxt, 1, 4000) AS querytxt
           , w.queue_start_time
           , w.service_class
-          , case when w.service_class = 14 then 'short_query_queue' else trim(b.condition) end as service_class_condition
+          , case when w.service_class = 1 then 'system-health'
+                 when w.service_class = 2 then 'system-metrics'
+                 when w.service_class = 3 then 'system-cmstats'
+                 when w.service_class = 4 then 'system'
+                 when w.service_class = 6 then 'dw_reporting'
+                 when w.service_class = 7 then 'dw_readwrite'
+                 when w.service_class = 8 then 'dw_default'
+                 when w.service_class = 14 then 'short_query_queue'
+                 else coalesce(trim(b.condition),w.service_class::text) end as queue_name
           , w.slot_count AS slots, w.total_queue_time / 1000000 AS queue_seconds
           , w.total_exec_time / 1000000 AS exec_seconds
           , (w.total_queue_time + w.total_exec_time) / 1000000 AS total_seconds
@@ -15,6 +23,14 @@ view: redshift_wlm_queries {
             AND q.starttime >= date_add('day', -7, 'now')
             AND w.userid > 1 ;;
     }
+
+  dimension: query {
+    type:  number
+    hidden: yes
+    primary_key: yes
+    sql: ${TABLE}.query ;;
+  }
+
   dimension: query_txt {
     type:  string
     sql: ${TABLE}.querytxt ;;
@@ -36,9 +52,15 @@ view: redshift_wlm_queries {
     sql: ${TABLE}.queue_start_time ;;
   }
 
-  dimension: service_class_desc {
+  dimension: queue_name {
     type:  string
-    sql: ${TABLE}.service_class_condition ;;
+    sql: ${TABLE}.queue_name ;;
+    suggestions: ["dw_reporting", "dw_readwrite", "dw_default", "short_query_queue"]
+  }
+
+  dimension: queue_id {
+    type:  string
+    sql: ${TABLE}.service_class ;;
   }
 
   dimension: queue_seconds {
@@ -62,13 +84,20 @@ view: redshift_wlm_queries {
     fields: [
       query_txt,
       queue_start_time_time,
-      service_class_desc,
+      queue_name,
+      queue_id,
       queue_seconds,
       exec_seconds,
       total_seconds
     ]
   }
 
+
+
+  measure: count_queries {
+    type: count
+    drill_fields: [query_detail*]
+  }
 
   measure: sum_queue_seconds {
     type: sum
